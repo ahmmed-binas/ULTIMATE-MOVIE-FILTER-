@@ -163,31 +163,31 @@ class MovieComponent(ttk.Frame):
     def open_movie(self):
         import webbrowser
         webbrowser.open(self.movie_link)
-
+        
+        
 def handle_search(frame):
     try:
-        url = search_var.get()  # Get the URL from the search entry field
+        url = search_var.get() 
 
-        if not url.strip():  # If the user didn't provide a URL, use the default one
+        if not url.strip(): 
             url = "https://swatchseries.is/top-imdb"
 
         response = requests.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Create a new window to display the movie links
         link_window = tk.Toplevel()
         link_window.title("Movie Links")
         
         link_listbox = tk.Listbox(link_window, width=100, height=20)
         link_listbox.pack(padx=10, pady=10)
 
-        links_set = set()  # Set to store unique links
+        links_set = set()  
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
 
         for link in links:
-            if '/tv/watch-' in link and link not in links_set:  # Check if the link is unique
+            if '/tv/watch-' in link and link not in links_set:  
                 links_set.add(link)
                 link_listbox.insert(tk.END, link)
 
@@ -196,28 +196,26 @@ def handle_search(frame):
                     movie_response.raise_for_status()
                     movie_soup = BeautifulSoup(movie_response.content, 'html.parser')
 
-                    stats = movie_soup.find('div', class_='stats')
-                    rating_element = stats.find_all('span', class_='item')[1].text.strip()
-                    rating = float(rating_element) if rating_element else None
+                    main_wrapper = movie_soup.find('div', id='main-wrapper')
 
-                    min_rating = float(ratings_var.get().split(' - ')[0])
-                    max_rating = float(ratings_var.get().split(' - ')[1])
-
-                    if rating is not None and min_rating <= rating <= max_rating:
-                        year_element = movie_soup.find('div', class_='row-line', text=lambda t: 'Released:' in t).text.split(":")[1].strip() if movie_soup.find('div', class_='row-line', text=lambda t: 'Released:' in t) else None
-
-                        img_element = movie_soup.find('div', class_='m_i-d-poster').find('img')
-                        img_url = img_element['src'] if img_element else None
-
-                        youtube_link = f"https://www.youtube.com/results?search_query={title.replace(' ', '+')}+trailer"
-
-                        movie_link = link
-
-                        movie_component = MovieComponent(frame, None, year_element, rating, img_url, youtube_link, movie_link)
-                        movie_component.pack(padx=10, pady=10, fill=tk.X)
+                    if main_wrapper:
+                        movie_info = main_wrapper.find('div', class_='movie_information')
+                        if movie_info:
+                            container = movie_info.find('div', class_='container')
+                            if container:
+                                m_id_content = container.find('div', class_='m_i-d-content')
+                                if m_id_content:
+                                    stats = m_id_content.find('div', class_='stats')
+                                    if stats:
+                                        rating_element = stats.find('i', class_='fas fa-star mr-2')
+                                        rating = float(rating_element.next_sibling.strip()) if rating_element else None
+                                        if rating is not None:
+                                            link_listbox.insert(tk.END, f"Rating found for {link}: {rating}")
+                                        else:
+                                            link_listbox.insert(tk.END, f"No rating found for {link}")
 
                 except Exception as e:
-                    print(f"Error processing movie page: {link}, Error: {e}")
+                    link_listbox.insert(tk.END, f"Error processing movie page: {link}, Error: {e}")
 
     except requests.RequestException as e:
         error_window = tk.Toplevel()
@@ -228,8 +226,6 @@ def handle_search(frame):
         
         ok_button = tk.Button(error_window, text="OK", command=error_window.destroy)
         ok_button.pack(pady=10)
-
-...
 
 
 if __name__=="__main__":
