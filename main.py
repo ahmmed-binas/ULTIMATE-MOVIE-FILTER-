@@ -102,34 +102,30 @@ class MovieComponent(ttk.Frame):
         self.img_url = img_url
         self.youtube_link = youtube_link
         self.movie_link = movie_link
- 
-        # Create the border frame with fixed size
+
         border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=600, height=200)
         border_frame.pack_propagate(False)
         border_frame.pack(padx=10, pady=10, fill=tk.X)
         
-        # Create and grid the image label within the border frame
         self.image_label = ttk.Label(border_frame)
         self.image_label.grid(row=0, column=0, rowspan=4, padx=10, pady=10)
         self.load_image(img_url)
 
-        # Create and grid the options frame within the border frame
         opt_frame = ttk.Frame(border_frame)
         opt_frame.grid(row=0, column=1, sticky='n')
 
-        # Create and grid the title label within the options frame
+
         title_label = ttk.Label(opt_frame, text=f"Title: {title}", font=('Helvetica', 12))
         title_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
-        # Create and grid the year label within the options frame
+
         year_label = ttk.Label(opt_frame, text=f"Year: {year}", font=('Helvetica', 12))
         year_label.grid(row=1, column=0, padx=10, pady=5, sticky='w')
 
-        # Create and grid the YouTube button within the options frame
+
         youtube_button = ttk.Button(opt_frame, text="Trailer", command=self.open_youtube)
         youtube_button.grid(row=2, column=0, padx=10, pady=5, sticky='w')
 
-        # Create and grid the Movie button within the options frame
         movie_button = ttk.Button(opt_frame, text="Movie", command=self.open_movie)
         movie_button.grid(row=3, column=0, padx=10, pady=5, sticky='w')
 
