@@ -6,6 +6,10 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import time
+import validators
+
+
+movies={}
 
 
 def gui():
@@ -102,9 +106,9 @@ def option_section(window):
     count_var = tk.StringVar()
     count_entry = ttk.Entry(frame, textvariable=count_var, width=8, font=('Helvetica', 12))
     count_entry.grid(row=2, column=1, padx=5, pady=(25, 0), sticky='w')
-    count_entry.insert(0, "20")  # Default count is 20
+    count_entry.insert(0, "3") 
 
-    search_button = tk.Button(window, text="Search", command=lambda: handle_search(frame))
+    search_button = tk.Button(window, text="Search", command=lambda:handle_search())
     search_button.pack()
 
 
@@ -164,10 +168,13 @@ class MovieComponent(ttk.Frame):
         import webbrowser
         webbrowser.open(self.movie_link)
         
-        
-def handle_search(frame):
+
+def handle_search():
+    global movies 
+    
     try:
         url = search_var.get() 
+        movie_count = int(count_var.get())
 
         if not url.strip(): 
             url = "https://swatchseries.is/top-imdb"
@@ -183,13 +190,18 @@ def handle_search(frame):
         link_listbox.pack(padx=10, pady=10)
 
         links_set = set()  
-
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
 
+        processed_count = 0
+
         for link in links:
+            if processed_count >= movie_count:
+                break
+
             if '/tv/watch-' in link and link not in links_set:  
                 links_set.add(link)
                 link_listbox.insert(tk.END, link)
+                processed_count += 1
 
                 try:
                     movie_response = requests.get(link)
@@ -205,28 +217,104 @@ def handle_search(frame):
                             if container:
                                 m_id_content = container.find('div', class_='m_i-d-content')
                                 if m_id_content:
-                                    stats = m_id_content.find('div', class_='stats')
-                                    if stats:
-                                        rating_element = stats.find('i', class_='fas fa-star mr-2')
-                                        rating = float(rating_element.next_sibling.strip()) if rating_element else None
+                                    heading_name = m_id_content.find('div', class_='heading_name')
+                                    if heading_name:
+                                        heading_element = heading_name.find('h2')
+                                        title = heading_element.text.strip() if heading_element else 'Unknown Title'
+                                        
+                                        stats = m_id_content.find('div', class_='stats')
+                                        rating = None
+                                        if stats:
+                                            rating_element = stats.find('i', class_='fas fa-star mr-2')
+                                            rating = float(rating_element.next_sibling.strip()) if rating_element else None
+
+                                        elements = m_id_content.find('div', class_='elements')
+                                        genre = None
+                                        year_of_release = None
+                                        if elements:
+                                            rowlines = elements.find_all('div', class_='rowline')
+                                            if len(rowlines) > 1:
+                                                genre_span = rowlines[1].find('span')
+                                                if genre_span:
+                                                    genre = genre_span.get_text(strip=True)
+                                            if len(rowlines) > 2:
+                                                year_span = rowlines[2].find('span')
+                                                if year_span:
+                                                    year_of_release = year_span.get_text(strip=True)
+
+                                        film_poster = m_id_content.find('div', class_='film-poster')
+                                        img_url = None
+                                        if film_poster:
+                                            img_tag = film_poster.find('img')
+                                            if img_tag:
+                                                img_url = img_tag['src']
+                                                
+                                            for title, details in movies.items():
+                                                 print(f"Title: {title}, Genre: {details['genre']}, Year: {details['year_of_release']}, Image URL: {details['img_url']}")
+
+
+
+                                        
+                                        movies[title] = {
+                                            'rating': rating,
+                                            'url': link,
+                                            'genre': genre,
+                                            'year_of_release': year_of_release,
+                                            'img_url': img_url
+                                        }
+
+
                                         if rating is not None:
-                                            link_listbox.insert(tk.END, f"Rating found for {link}: {rating}")
+                                            link_listbox.insert(tk.END, f"Rating found for {title}: {rating}")
                                         else:
-                                            link_listbox.insert(tk.END, f"No rating found for {link}")
+                                            link_listbox.insert(tk.END, f"No rating found for {title}")
 
                 except Exception as e:
                     link_listbox.insert(tk.END, f"Error processing movie page: {link}, Error: {e}")
 
     except requests.RequestException as e:
-        error_window = tk.Toplevel()
-        error_window.title("Error")
-        
-        error_label = tk.Label(error_window, text=f"Error fetching URL: {e}")
-        error_label.pack(padx=10, pady=10)
-        
-        ok_button = tk.Button(error_window, text="OK", command=error_window.destroy)
-        ok_button.pack(pady=10)
+        show_error(f"Error fetching URL: {e}")
 
+
+    
+        
+        
+        
+        
+      
+        
+        
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+def show_error(message):
+    error_window = tk.Toplevel()
+    error_window.title("Error")
+    
+    error_label = tk.Label(error_window, text=message,width=50,height=50)
+    error_label.pack(padx=10, pady=10)
+    
+    ok_button = tk.Button(error_window, text="OK", command=error_window.destroy)
+    ok_button.pack(pady=10)
+   
+        
 
 if __name__=="__main__":
     gui()
