@@ -12,6 +12,7 @@ movies = {}
 
 
 
+
 def gui():
     global search_var, ratings_var, year_var, genre_var, frame,count_var
 
@@ -39,7 +40,15 @@ def gui():
 
     frame = ttk.Frame(canvas)
     canvas.create_window((0, 0), window=frame, anchor="nw")
+    
+    
+    image_path = 'D:/python/Ultimate_Movie_Filter/pic_for_ultimatemovies.jpg'
+    img = Image.open(image_path)
+    
+    img = img.resize((100,100),Image.LANCZOS)
+    tk_img = ImageTk.PhotoImage(img)
 
+    window.iconphoto(True, tk_img)
     window.mainloop()
 
 
@@ -53,7 +62,7 @@ def search_bar(window):
     frame = ttk.Frame(window)
     frame.pack(padx=20, pady=20, fill=tk.X)
 
-    heading_search = tk.Label(frame, text="Paste the Link of the page", font=('Helvetica', 12))
+    heading_search = tk.Label(frame, text="Paste the Link of the page to search", font=('Helvetica', 12))
     heading_search.grid(row=1, column=1, padx=(0, 5))
 
     search_entry = ttk.Entry(frame, textvariable=search_var, width=25)
@@ -63,7 +72,7 @@ def search_bar(window):
 
 
 def option_section(window):
-    global ratings_var, year_var, genre_var, count_var
+    global ratings_var,  genre_var, count_var
 
     frame_heading = ttk.Frame(window)
     frame_heading.pack(padx=5, pady=(5, 0), fill=tk.X)
@@ -91,13 +100,18 @@ def option_section(window):
     genre_dropdown = ttk.Combobox(frame, textvariable=genre_var, values=genre_opt, font=('Helvetica', 12))
     genre_dropdown.grid(row=1, column=1, padx=5, pady=(25, 0), sticky='w')
     genre_dropdown.set("Any")
-
+    
     count_label = tk.Label(frame, text="Count of Movies:", font=('Helvetica', 12))
     count_label.grid(row=1, column=2, padx=5, pady=(25, 0), sticky='e')
 
     count_var = tk.StringVar()
-    count_entry = ttk.Entry(frame, textvariable=count_var, width=8, font=('Helvetica', 12))
-    count_entry.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
+    count_var.set("1")  
+    
+  
+    count_options = [str(i) for i in range(1, 26)] 
+
+    count_dropdown = ttk.Combobox(frame, textvariable=count_var, values=count_options, font=('Helvetica', 12))
+    count_dropdown.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
 
 
     button_frame = ttk.Frame(window)
@@ -111,7 +125,7 @@ def option_section(window):
 
 
 class MovieComponent(ttk.Frame):
-    def __init__(self, parent, title, year, rating, img_url, youtube_link, movie_link):
+    def __init__(self, parent, title, year, rating, img_url, youtube_link, movie_link, genre):
         super().__init__(parent)
 
         self.title = title
@@ -120,6 +134,7 @@ class MovieComponent(ttk.Frame):
         self.img_url = img_url
         self.youtube_link = youtube_link
         self.movie_link = movie_link
+        self.genre = genre
 
         border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=1000, height=200)
         border_frame.pack_propagate(False)
@@ -140,12 +155,37 @@ class MovieComponent(ttk.Frame):
 
         rating_label = ttk.Label(opt_frame, text=f"Rating: {rating}", font=('Helvetica', 12))
         rating_label.grid(row=2, column=0, padx=10, pady=5, sticky='w')
+        
+        genre_label = ttk.Label(opt_frame, text=f"Genre: {genre}", font=('Helvetica', 12))
+        genre_label.grid(row=2, column=1, padx=10, pady=5, sticky='w')
 
         youtube_button = ttk.Button(opt_frame, text="Trailer", command=self.open_youtube)
         youtube_button.grid(row=3, column=0, padx=10, pady=5, sticky='w')
 
         movie_button = ttk.Button(opt_frame, text="Movie", command=self.open_movie)
         movie_button.grid(row=4, column=0, padx=10, pady=5, sticky='w')
+
+    def load_image(self, img_url):
+        try:
+            response = requests.get(img_url)
+            img_data = response.content
+            img = Image.open(BytesIO(img_data))
+            img = img.resize((100, 150), Image.LANCZOS)
+            self.img = ImageTk.PhotoImage(img)
+            self.image_label.config(image=self.img)
+        except Exception as e:
+            print(f"Error loading image: {e}")
+
+    def open_youtube(self):
+        import webbrowser
+        search_query = "+".join(self.title.split()) + "+trailer"
+        youtube_link = "https://www.youtube.com/results?search_query=" + search_query
+        webbrowser.open(youtube_link)
+
+
+    def open_movie(self):
+        import webbrowser
+        webbrowser.open(self.movie_link)
 
     def load_image(self, img_url):
         try:
@@ -183,6 +223,8 @@ def handle_search():
         movies = {}
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
+        
+        ALL = len(links)
 
         
         movie_processed = 0
@@ -191,9 +233,12 @@ def handle_search():
         selected_genre = genre_var.get()
         count = int(count_var.get())
 
+
+
         for link in links:
-            if movie_processed >= count:
+            if movie_processed >= count and count != ALL:
                 break
+                
 
             if '/tv/watch-' in link and link not in links_set:
                 links_set.add(link)
@@ -274,6 +319,7 @@ def create_movie_components():
         widget.destroy()
 
     for movie_name, movie_details in movies.items():
+        genre_str = ', '.join(movie_details.get('genres', ['Unknown']))
         movie_component = MovieComponent(
             frame,
             title=movie_name,
@@ -281,10 +327,10 @@ def create_movie_components():
             rating=movie_details.get('rating', 'N/A'),
             img_url=movie_details.get('img_url', ''),
             youtube_link=movie_details.get('youtube_link', ''),
-            movie_link=movie_details.get('link', '')
+            movie_link=movie_details.get('link', ''),
+            genre=genre_str
         )
         movie_component.pack(padx=10, pady=10, fill=tk.X)
-
 
 def show_error(message):
     error_window = tk.Toplevel()
@@ -311,7 +357,7 @@ def clear_movies():
     movies.clear() 
     for widget in frame.winfo_children():
         widget.destroy()
-        count.set(0)
+    movies = {}
 
 
 
