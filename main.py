@@ -189,7 +189,7 @@ def handle_search():
         link_listbox.pack(padx=10, pady=10)
 
         links_set = set()  
-        movies = {}  # Dictionary to store movie names and ratings
+        movies = {}
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
 
         for link in links:
@@ -202,6 +202,14 @@ def handle_search():
                     movie_response.raise_for_status()
                     movie_soup = BeautifulSoup(movie_response.content, 'html.parser')
                     m_id_content = movie_soup.find('div', class_='m_i-d-content')
+                    m_id_poster = movie_soup.find('div', class_='m_i-d-poster')
+                    
+                    img_url = None
+                    if m_id_poster:
+                        poster_element = m_id_poster.find('div' , class_='film-poster')
+                        img_tag = poster_element.find('img') if poster_element else None
+                        img_url = img_tag['src'] if img_tag else None
+                    
                     if m_id_content:
                         heading_element = m_id_content.find('h2', class_='heading-name')
                         heading_link = heading_element.find('a') if heading_element else None
@@ -213,12 +221,26 @@ def handle_search():
                             rating_element = stats.find('i', class_='fas fa-star mr-2')
                             rating = float(rating_element.next_sibling.strip()) if rating_element else None
                        
-                        if rating is not None:
-                            link_listbox.insert(tk.END, f"{movie_name}: Rating {rating}")
-                            movies[movie_name] = rating
+                            row_lines = m_id_content.find_all('div', class_='row-line')
+                            if len(row_lines) >= 3:
+                                release_year_div = row_lines[2] 
+                                release_date_text = release_year_div.get_text(strip=True)
+                                release_date = release_date_text.replace("Released:", "").strip()
+                                print("Release Date:", release_date)
+                            else:
+                                print("Release year information not found")
+                                
+                            row_lines = m_id_content.find_all('div', class_='row-line')
+                            
+                        if len(row_lines) >= 2:
+                            genre_div = row_lines[1]  # Second occurrence
+                            genre_links = genre_div.find_all('a')
+                            genres = [link.get_text(strip=True) for link in genre_links]
+                            print("Genres:", genres)
                         else:
-                            link_listbox.insert(tk.END, f"{movie_name}: No rating found")
-                           
+                            print("Genre information not found")
+                                
+                                
                 except Exception as e:
                     link_listbox.insert(tk.END, f"Error processing movie page: {link}, Error: {e}")
 
@@ -226,9 +248,6 @@ def handle_search():
 
     except requests.RequestException as e:
         show_error(f"Error fetching URL: {e}")
-        
-        
-        
         
         
         
