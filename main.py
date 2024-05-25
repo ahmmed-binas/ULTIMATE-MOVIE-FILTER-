@@ -219,26 +219,22 @@ def handle_search():
         soup = BeautifulSoup(response.content, 'html.parser')
 
         links_set = set()
-        global movies,count
+        global movies
         movies = {}
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
         
         ALL = len(links)
 
-        
         movie_processed = 0
 
         rating_filter = ratings_var.get()
         selected_genre = genre_var.get()
         count = int(count_var.get())
 
-
-
         for link in links:
             if movie_processed >= count and count != ALL:
                 break
-                
 
             if '/tv/watch-' in link and link not in links_set:
                 links_set.add(link)
@@ -299,12 +295,11 @@ def handle_search():
 
                                 print("Movie added:", movies[movie_name])
                                 movie_processed += 1
-
-                        else:
-                            show_error("No movies found matching the criteria!")
-
                 except Exception as e:
                     show_error(f"ERROR: {e}")
+
+        if not movies:
+            show_error("No movies found matching the criteria!")
 
         create_movie_components()
         print("All movies:", movies)
