@@ -1,11 +1,14 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, font
 from PIL import Image, ImageTk
 from io import BytesIO
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 movies = {}
 review_entry = None
@@ -14,29 +17,46 @@ review_window = None
 main_window = None
 DO_NOT_SHOW_FILE = "do_not_show_review.txt"
 
+def send_email(review, happiness_meter):
+    email_sender = "binasahmed8@gmail.com"
+    email_receiver = "random08296@gmail.com"
+    password = "dnbw xfqq rypv obds"
 
+    subject = "Movie App Review, what should we improve on?"
+    body = f"Review: {review}\nHappiness Meter: {happiness_meter}"
 
+    msg = MIMEMultipart()
+    msg['From'] = email_sender
+    msg['To'] = email_receiver
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+        smtp.starttls()
+        smtp.login(email_sender, password)
+        smtp.send_message(msg)
+    print("Email sent successfully.")
 
 def gui():
-    global window, search_var, ratings_var, year_var, genre_var, frame,count_var
+    global main_window, search_var, ratings_var, year_var, genre_var, frame, count_var
 
     WIDTH = 1000
     HEIGHT = 500
 
-    window = tk.Tk()
-    window.title("MOVIE FILTER APPLICATION")
-    window.geometry(f"{WIDTH}x{HEIGHT}")
+    main_window = tk.Tk()
+    main_window.title("MOVIE FILTER APPLICATION")
+    main_window.geometry(f"{WIDTH}x{HEIGHT}")
 
-    heading = tk.Label(window, text="ULTIMATE MOVIE FILTER", font=('Helvetica', 12))
+    heading = tk.Label(main_window, text="ULTIMATE MOVIE FILTER", font=('Helvetica', 12))
     heading.pack(ipadx=25, ipady=10)
 
-    search_bar(window)
-    option_section(window)
+    search_bar(main_window)
+    option_section(main_window)
 
-    canvas = tk.Canvas(window)
+    canvas = tk.Canvas(main_window)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    scrollbar = ttk.Scrollbar(window, orient=tk.VERTICAL, command=canvas.yview)
+    scrollbar = ttk.Scrollbar(main_window, orient=tk.VERTICAL, command=canvas.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     canvas.configure(yscrollcommand=scrollbar.set)
@@ -44,20 +64,16 @@ def gui():
 
     frame = ttk.Frame(canvas)
     canvas.create_window((0, 0), window=frame, anchor="nw")
-    
-    
+
     image_path = 'D:/python/Ultimate_Movie_Filter/pic_for_ultimatemovies.jpg'
     img = Image.open(image_path)
-    
-    img = img.resize((100,100),Image.LANCZOS)
+    img = img.resize((100, 100), Image.LANCZOS)
     tk_img = ImageTk.PhotoImage(img)
 
-    window.iconphoto(True, tk_img)
-    window.protocol("WM_DELETE_WINDOW" , on_closing)
+    main_window.iconphoto(True, tk_img)
+    main_window.protocol("WM_DELETE_WINDOW", on_closing)
 
-
-    window.mainloop()
-
+    main_window.mainloop()
 
 def search_bar(window):
     global search_var
@@ -77,9 +93,8 @@ def search_bar(window):
     search_entry.config(font=('Helvetica', 12))
     search_entry.insert(0, "https://swatchseries.is/top-imdb")
 
-
 def option_section(window):
-    global ratings_var,  genre_var, count_var
+    global ratings_var, genre_var, count_var
 
     frame_heading = ttk.Frame(window)
     frame_heading.pack(padx=5, pady=(5, 0), fill=tk.X)
@@ -107,29 +122,25 @@ def option_section(window):
     genre_dropdown = ttk.Combobox(frame, textvariable=genre_var, values=genre_opt, font=('Helvetica', 12))
     genre_dropdown.grid(row=1, column=1, padx=5, pady=(25, 0), sticky='w')
     genre_dropdown.set("Any")
-    
+
     count_label = tk.Label(frame, text="Count of Movies:", font=('Helvetica', 12))
     count_label.grid(row=1, column=2, padx=5, pady=(25, 0), sticky='e')
 
     count_var = tk.StringVar()
-    count_var.set("1")  
-    
-  
-    count_options = [str(i) for i in range(1, 26)] 
+    count_var.set("1")
 
+    count_options = [str(i) for i in range(1, 26)]
     count_dropdown = ttk.Combobox(frame, textvariable=count_var, values=count_options, font=('Helvetica', 12))
     count_dropdown.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
-
 
     button_frame = ttk.Frame(window)
     button_frame.pack(padx=20, pady=10, fill=tk.X)
 
-    search_button = tk.Button(button_frame, text="Search", command=lambda: handle_search())
+    search_button = tk.Button(button_frame, text="Search", command=handle_search)
     search_button.grid(row=0, column=0, padx=10, pady=5)
 
     clear_button = tk.Button(button_frame, text="Clear", command=clear_movies)
     clear_button.grid(row=0, column=1, padx=10, pady=5)
-
 
 class MovieComponent(ttk.Frame):
     def __init__(self, parent, title, year, rating, img_url, youtube_link, movie_link, genre):
@@ -162,7 +173,7 @@ class MovieComponent(ttk.Frame):
 
         rating_label = ttk.Label(opt_frame, text=f"Rating: {rating}", font=('Helvetica', 12))
         rating_label.grid(row=2, column=0, padx=10, pady=5, sticky='w')
-        
+
         genre_label = ttk.Label(opt_frame, text=f"Genre: {genre}", font=('Helvetica', 12))
         genre_label.grid(row=2, column=1, padx=10, pady=5, sticky='w')
 
@@ -185,34 +196,11 @@ class MovieComponent(ttk.Frame):
 
     def open_youtube(self):
         import webbrowser
-        search_query = "+".join(self.title.split()) + "+trailer"
-        youtube_link = "https://www.youtube.com/results?search_query=" + search_query
-        webbrowser.open(youtube_link)
-
-
-    def open_movie(self):
-        import webbrowser
-        webbrowser.open(self.movie_link)
-
-    def load_image(self, img_url):
-        try:
-            response = requests.get(img_url)
-            img_data = response.content
-            img = Image.open(BytesIO(img_data))
-            img = img.resize((100, 150), Image.LANCZOS)
-            self.img = ImageTk.PhotoImage(img)
-            self.image_label.config(image=self.img)
-        except Exception as e:
-            print(f"Error loading image: {e}")
-
-    def open_youtube(self):
-        import webbrowser
         webbrowser.open(self.youtube_link)
 
     def open_movie(self):
         import webbrowser
         webbrowser.open(self.movie_link)
-
 
 def handle_search():
     try:
@@ -314,111 +302,81 @@ def handle_search():
     except requests.RequestException as e:
         show_error(f"Error fetching URL: {e}")
 
+def display_movies(movies, count):
+    for i, (movie_name, movie_data) in enumerate(list(movies.items())[:count]):
+        movie_component = MovieComponent(frame, title=movie_name, year=movie_data['release_date'], rating=movie_data['rating'],
+                                         img_url=movie_data['img_url'], youtube_link=f"https://www.youtube.com/results?search_query={'+'.join(movie_name.split())}",
+                                         movie_link=movie_data['link'], genre=", ".join(movie_data['genres']))
+        movie_component.pack(fill=tk.X, padx=10, pady=5)
 
 def create_movie_components():
-    global frame
-    for widget in frame.winfo_children():
-        widget.destroy()
-
-    for movie_name, movie_details in movies.items():
-        genre_str = ', '.join(movie_details.get('genres', ['Unknown']))
-        movie_component = MovieComponent(
-            frame,
-            title=movie_name,
-            year=movie_details.get('release_date', 'Unknown'),
-            rating=movie_details.get('rating', 'N/A'),
-            img_url=movie_details.get('img_url', ''),
-            youtube_link=movie_details.get('youtube_link', ''),
-            movie_link=movie_details.get('link', ''),
-            genre=genre_str
-        )
-        movie_component.pack(padx=10, pady=10, fill=tk.X)
-
-def show_error(message):
-    error_window = tk.Toplevel()
-    error_window.title("Error")
-    error_window.configure(bg="#332c50")
-
-    error_label = tk.Label(error_window, text=message, width=50, height=5, bg="#332c50", fg="white")
-    error_label.pack(padx=10, pady=10)
-
-    ok_button = tk.Button(error_window, text="OK", command=error_window.destroy)
-    ok_button.pack(pady=10)
-
-    screen_width = error_window.winfo_screenwidth()
-    screen_height = error_window.winfo_screenheight()
-
-    x = (screen_width - error_window.winfo_reqwidth()) // 2
-    y = (screen_height - error_window.winfo_reqheight()) // 2
-
-    error_window.geometry("+{}+{}".format(x, y))
-
+    clear_movies()
+    display_movies(movies, int(count_var.get()))
 
 def clear_movies():
-    global frame, movies
-    movies.clear() 
     for widget in frame.winfo_children():
         widget.destroy()
-    movies = {}
-    
-    
-def review_box():
-    global review_entry, happiness_var , review_window
-    review_window = tk.Toplevel(window)
-    review_window.title("Review:)")
-    review_window.geometry("400x300")
-    
-    review_label = tk.Label(review_window , text ="Enter Your Review here!")
-    review_label.pack()
-    
-    review_entry = tk.Entry(review_window, width=50)
-    review_entry.pack()
-    
-    happiness_label = tk.Label(review_window,text="Rate Your happines ")
-    happiness_label.pack()
-    
-    happiness_var = tk.StringVar()
-    
-    happiness_frame = tk.frame(review_window)
-    happiness_frame.pack(pady=10)
-    
-    
-    emoji_font = font.Font(family='Helvetica', size=30)  
 
-    happiness_levels = [
-        ("☹️", "Bad"),
-        ("😊", "Good"),
-        ("🙃", "Great"),
-        ("☠️", "Insane")
-    ]
-    
-    for emoji, text in happiness_levels:
-        button_frame = tk.Frame(happiness_frame)
-        button_frame.pack(side=tk.LEFT, padx=10)
-        radio_btn = tk.Radiobutton(button_frame, text=emoji, variable=happiness_var, value=text, font=emoji_font)
-        radio_btn.pack()
-        label = tk.Label(button_frame, text=text)
-        label.pack()
-        
-    submit_btn = tk.Button(review_window, text="Submit", command=send_review)
-    submit_btn.pack(pady=10)
+def show_error(message):
+    messagebox.showerror("Error", message)
 
-    do_not_show_btn = tk.Button(review_window, text="Don't show this box again", command=disable_review_prompt)
-    do_not_show_btn.pack(pady=5)
-    
+def on_closing():
+    global review_window
+    if not os.path.exists(DO_NOT_SHOW_FILE):
+        open_review_prompt()
+    else:
+        main_window.destroy()
 
+def open_review_prompt():
+    global review_entry, happiness_var, review_window
 
-def close_all():
-    if review_window:
-        review_window.destroy()
-    if window:
-        window.destroy()
-        
-        
+    review_window = tk.Toplevel()
+    review_window.title("Review")
+    review_window.geometry("300x200")
 
+    review_label = tk.Label(review_window, text="Please leave a review:", font=('Helvetica', 12))
+    review_label.pack(pady=10)
 
+    review_entry = tk.Entry(review_window, font=('Helvetica', 12), width=30)
+    review_entry.pack(pady=5)
 
+    happiness_label = tk.Label(review_window, text="How satisfied are you with the app?", font=('Helvetica', 12))
+    happiness_label.pack(pady=5)
 
+    happiness_var = tk.IntVar()
+    happiness_scale = tk.Scale(review_window, from_=1, to=10, orient=tk.HORIZONTAL, variable=happiness_var)
+    happiness_scale.pack(pady=5)
+
+    button_frame = tk.Frame(review_window)
+    button_frame.pack(pady=10)
+
+    submit_button = tk.Button(button_frame, text="Submit", command=submit_review)
+    submit_button.grid(row=0, column=0, padx=5)
+
+    cancel_button = tk.Button(button_frame, text="Cancel", command=review_window.destroy)
+    cancel_button.grid(row=0, column=1, padx=5)
+
+    do_not_show_var = tk.IntVar()
+    do_not_show_checkbox = tk.Checkbutton(review_window, text="Don't show this box again", variable=do_not_show_var)
+    do_not_show_checkbox.pack()
+
+    review_window.protocol("WM_DELETE_WINDOW", lambda: close_review_prompt(do_not_show_var.get()))
+
+def submit_review():
+    global review_window
+    review = review_entry.get()
+    happiness_meter = happiness_var.get()
+    send_email(review, happiness_meter)
+    review_window.destroy()
+    main_window.destroy()
+
+def close_review_prompt(do_not_show):
+    global review_window
+    if do_not_show:
+        with open(DO_NOT_SHOW_FILE, 'w') as file:
+            file.write("Do not show review prompt again.")
+    review_window.destroy()
+    main_window.destroy()
 
 if __name__ == "__main__":
     gui()
