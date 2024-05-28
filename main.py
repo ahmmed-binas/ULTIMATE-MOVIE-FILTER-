@@ -9,6 +9,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import re
 
 movies = {}
 review_entry = None
@@ -93,6 +94,13 @@ def search_bar(window):
     search_entry.config(font=('Helvetica', 12))
     search_entry.insert(0, "https://swatchseries.is/top-imdb")
 
+def validate_numeric_input(P):
+    if re.match(r'^\d*$', P):  
+        return True
+    return False
+
+
+
 def option_section(window):
     global ratings_var, genre_var, count_var
 
@@ -129,14 +137,14 @@ def option_section(window):
     count_var = tk.StringVar()
     count_var.set("1")
 
-    count_options = [str(i) for i in range(1, 26)]
-    count_dropdown = ttk.Combobox(frame, textvariable=count_var, values=count_options, font=('Helvetica', 12))
-    count_dropdown.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
+    validate_cmd = (window.register(validate_numeric_input), '%P')
+    count_entry = ttk.Entry(frame, textvariable=count_var, validate='key', validatecommand=validate_cmd, font=('Helvetica', 12))
+    count_entry.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
 
     button_frame = ttk.Frame(window)
     button_frame.pack(padx=20, pady=10, fill=tk.X)
 
-    search_button = tk.Button(button_frame, text="Search", command=handle_search)
+    search_button = tk.Button(button_frame, text="Search", command=lambda: handle_search())
     search_button.grid(row=0, column=0, padx=10, pady=5)
 
     clear_button = tk.Button(button_frame, text="Clear", command=clear_movies)
@@ -228,7 +236,7 @@ def handle_search():
         count = int(count_var.get())
 
         for link in links:
-            if movie_processed >= count and count != ALL:
+            if movie_processed >= count:
                 break
 
             if '/tv/watch-' in link and link not in links_set:
