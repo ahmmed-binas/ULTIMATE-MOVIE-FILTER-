@@ -18,13 +18,17 @@ review_window = None
 main_window = None
 DO_NOT_SHOW_FILE = "do_not_show_review.txt"
 
+
+
+    
+
 def send_email(review, happiness_meter):
     email_sender = "binasahmed8@gmail.com"
     email_receiver = "random08296@gmail.com"
     password = "dnbw xfqq rypv obds"
 
-    subject = "Movie App Review, what should we improve on?"
-    body = f"Review: {review}\nHappiness Meter: {happiness_meter}"
+    subject = "Movie App Review, what should we improve on or changes we should make which will improve my application?"
+    body = f"heres the users Review: {review}\n and the Happiness Meter: {happiness_meter}"
 
     msg = MIMEMultipart()
     msg['From'] = email_sender
@@ -37,9 +41,8 @@ def send_email(review, happiness_meter):
         smtp.login(email_sender, password)
         smtp.send_message(msg)
     print("Email sent successfully.")
-
 def gui():
-    global main_window, search_var, ratings_var, genre_var, frame, count_var
+    global main_window
 
     WIDTH = 1000
     HEIGHT = 500
@@ -48,7 +51,10 @@ def gui():
     main_window.title("MOVIE FILTER APPLICATION")
     main_window.geometry(f"{WIDTH}x{HEIGHT}")
 
-    heading = tk.Label(main_window, text="ULTIMATE MOVIE FILTER", font=('Helvetica', 12))
+    title_bar = tk.Frame(main_window, bg="blue", height=20)
+    title_bar.pack(fill=tk.X)
+
+    heading = tk.Label(title_bar, text="ULTIMATE MOVIE FILTER", font=('Helvetica', 12), bg="blue", fg="white")
     heading.pack(ipadx=25, ipady=10)
 
     search_bar(main_window)
@@ -61,18 +67,11 @@ def gui():
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     canvas.configure(yscrollcommand=scrollbar.set)
+
+    scrollable_frame = ttk.Frame(canvas)
+    scrollable_frame_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
     canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-    frame = ttk.Frame(canvas)
-    canvas.create_window((0, 0), window=frame, anchor="nw")
-
-    image_path = 'D:/python/Ultimate_Movie_Filter/pic_for_ultimatemovies.jpg'
-    img = Image.open(image_path)
-    img = img.resize((100, 100), Image.LANCZOS)
-    tk_img = ImageTk.PhotoImage(img)
-
-    main_window.iconphoto(True, tk_img)
-    main_window.protocol("WM_DELETE_WINDOW", on_closing)
 
     main_window.mainloop()
 
@@ -92,7 +91,9 @@ def search_bar(window):
     search_entry = ttk.Entry(frame, textvariable=search_var, width=25)
     search_entry.grid(row=1, column=0, padx=(0, 5))
     search_entry.config(font=('Helvetica', 12))
-    search_entry.insert(0, "https://swatchseries.is/genre/horror")
+    #search_entry.insert(0,"")
+    
+
 
 def validate_numeric_input(P):
     if re.match(r'^\d*$', P):  
@@ -138,6 +139,8 @@ def option_section(window):
     validate_cmd = (window.register(validate_numeric_input), '%P')
     count_entry = ttk.Entry(frame, textvariable=count_var, validate='key', validatecommand=validate_cmd, font=('Helvetica', 12))
     count_entry.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
+    
+
 
     button_frame = ttk.Frame(window)
     button_frame.pack(padx=20, pady=10, fill=tk.X)
@@ -225,8 +228,6 @@ def handle_search():
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
 
-        ALL = len(links)
-        print(ALL)
 
         movie_processed = 0
 
@@ -367,12 +368,14 @@ def open_review_prompt():
 
     cancel_button = tk.Button(button_frame, text="Cancel", command=review_window.destroy)
     cancel_button.grid(row=0, column=1, padx=5)
+    
+    
 
-    do_not_show_var = tk.IntVar()
-    do_not_show_checkbox = tk.Checkbutton(review_window, text="Don't show this box again", variable=do_not_show_var)
+
+    do_not_show_checkbox = tk.Button(review_window, text="Don't show this box again", command=disable_review_prompt)
     do_not_show_checkbox.pack()
 
-    review_window.protocol("WM_DELETE_WINDOW", lambda: close_review_prompt(do_not_show_var.get()))
+    review_window.protocol("WM_DELETE_WINDOW", close_all_window)
 
 def submit_review():
     global review_window
@@ -382,13 +385,21 @@ def submit_review():
     review_window.destroy()
     main_window.destroy()
 
-def close_review_prompt(do_not_show):
+def disable_review_prompt():
     global review_window
-    if do_not_show:
-        with open(DO_NOT_SHOW_FILE, 'w') as file:
-            file.write("Do not show review prompt again.")
+    with open(DO_NOT_SHOW_FILE, 'w') as file:
+        file.write("delete this file to disable the review box?")
     review_window.destroy()
     main_window.destroy()
+    
+
+def close_all_window():
+    if review_window:
+        review_window.destroy()
+    if main_window:
+        main_window.destroy()
+
+    
 
 if __name__ == "__main__":
     gui()
