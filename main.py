@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, font
+from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from io import BytesIO
 import requests
@@ -39,7 +39,7 @@ def send_email(review, happiness_meter):
     print("Email sent successfully.")
 
 def gui():
-    global main_window, search_var, ratings_var, year_var, genre_var, frame, count_var
+    global main_window, search_var, ratings_var, genre_var, frame, count_var
 
     WIDTH = 1000
     HEIGHT = 500
@@ -92,14 +92,12 @@ def search_bar(window):
     search_entry = ttk.Entry(frame, textvariable=search_var, width=25)
     search_entry.grid(row=1, column=0, padx=(0, 5))
     search_entry.config(font=('Helvetica', 12))
-    search_entry.insert(0, "https://swatchseries.is/top-imdb")
+    search_entry.insert(0, "https://swatchseries.is/genre/horror")
 
 def validate_numeric_input(P):
     if re.match(r'^\d*$', P):  
         return True
     return False
-
-
 
 def option_section(window):
     global ratings_var, genre_var, count_var
@@ -144,7 +142,7 @@ def option_section(window):
     button_frame = ttk.Frame(window)
     button_frame.pack(padx=20, pady=10, fill=tk.X)
 
-    search_button = tk.Button(button_frame, text="Search", command=lambda: handle_search())
+    search_button = tk.Button(button_frame, text="Search", command=handle_search)
     search_button.grid(row=0, column=0, padx=10, pady=5)
 
     clear_button = tk.Button(button_frame, text="Clear", command=clear_movies)
@@ -215,7 +213,7 @@ def handle_search():
         url = search_var.get()
 
         if not url.strip():
-            url = "https://swatchseries.is/top-imdb"
+            url = "https://swatchseries.is/genre/horror"
 
         response = requests.get(url)
         response.raise_for_status()
@@ -226,8 +224,9 @@ def handle_search():
         movies = {}
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
-        
+
         ALL = len(links)
+        print(ALL)
 
         movie_processed = 0
 
@@ -239,7 +238,7 @@ def handle_search():
             if movie_processed >= count:
                 break
 
-            if '/tv/watch-' in link and link not in links_set:
+            if '/watch-' in link and link not in links_set:
                 links_set.add(link)
                 try:
                     movie_response = requests.get(link)
@@ -265,7 +264,12 @@ def handle_search():
 
                         if stats:
                             rating_element = stats.find('i', class_='fas fa-star mr-2')
-                            rating = float(rating_element.next_sibling.strip()) if rating_element else None
+                            rating_text = rating_element.next_sibling.strip() if rating_element else None
+                            try:
+                                rating = float(rating_text)
+                            except (ValueError, TypeError):
+                                rating = None
+                                print(f"Rating conversion error: {rating_text}")
 
                         if rating_filter == "Any" or \
                                 (rating_filter == "1 - 2" and rating <= 2) or \
@@ -340,7 +344,7 @@ def open_review_prompt():
 
     review_window = tk.Toplevel()
     review_window.title("Review")
-    review_window.geometry("300x200")
+    review_window.geometry("300x250")
 
     review_label = tk.Label(review_window, text="Please leave a review:", font=('Helvetica', 12))
     review_label.pack(pady=10)
