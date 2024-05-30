@@ -21,9 +21,6 @@ main_window = None
 DO_NOT_SHOW_FILE = "do_not_show_review.txt"
 
 
-
-    
-
 def send_email(review, happiness_meter):
     email_sender = "binasahmed8@gmail.com"
     email_receiver = "random08296@gmail.com"
@@ -43,9 +40,7 @@ def send_email(review, happiness_meter):
         smtp.login(email_sender, password)
         smtp.send_message(msg)
     print("Email sent successfully.")
-    
-    
-    
+
 def gui():
     global main_window
 
@@ -56,56 +51,57 @@ def gui():
     main_window.title("MOVIE FILTER APPLICATION")
     main_window.geometry(f"{WIDTH}x{HEIGHT}")
 
-    title_bar = tk.Frame(main_window, bg="blue", height=20)
+    style = ttk.Style()
+    style.theme_use('clam')
+    style.configure("TFrame", background="#f0f0f0")  
+
+    title_bar = tk.Frame(main_window, height=20)
     title_bar.pack(fill=tk.X)
 
-    heading = tk.Label(title_bar, text="ULTIMATE MOVIE FILTER", font=('Helvetica', 12), bg="blue", fg="white")
+    heading = tk.Label(title_bar, text="ULTIMATE MOVIE FILTER", font=('Times New Roman', 20), fg="#000099", bg="#f0f0f0")
     heading.pack(ipadx=25, ipady=10)
 
     search_bar(main_window)
     option_section(main_window)
 
-
     main_window.mainloop()
 
-def search_bar(window):
-    global search_var,frame
 
-    style = ttk.Style()
-    style.configure("Custom.TButton", padding=(2), font=('Helvetica', 14))
+def search_bar(window):
+    global search_var, frame
 
     search_var = tk.StringVar()
     frame = ttk.Frame(window)
     frame.pack(padx=20, pady=20, fill=tk.X)
 
-    heading_search = tk.Label(frame, text="Paste the Link of the page to search", font=('Helvetica', 12))
+    heading_search = tk.Label(frame, text="Paste the Link of the page to search", fg="#000099",
+                               font=('Helvetica', 12))
     heading_search.grid(row=1, column=1, padx=(0, 5))
 
     search_entry = ttk.Entry(frame, textvariable=search_var, width=25)
     search_entry.grid(row=1, column=0, padx=(0, 5))
     search_entry.config(font=('Helvetica', 12))
-    #search_entry.insert(0,"")
-    
 
 
 def validate_numeric_input(P):
-    if re.match(r'^\d*$', P):  
+    if re.match(r'^\d*$', P):
         return True
     return False
 
+
 def option_section(window):
-    global ratings_var, genre_var, count_var, button_frame ,movie_frame
+    global ratings_var, genre_var, count_var, button_frame, movie_frame
 
     frame_heading = ttk.Frame(window)
     frame_heading.pack(padx=5, pady=(5, 0), fill=tk.X)
 
-    heading_opt = tk.Label(frame_heading, text="FILTER", font=('Helvetica', 20))
+    heading_opt = tk.Label(frame_heading, text="FILTER", fg="#000099", font=('Helvetica', 20))
     heading_opt.grid(row=0, column=0, padx=20, pady=10)
 
     frame = ttk.Frame(window)
     frame.pack(padx=20, pady=5, fill=tk.X)
 
-    ratings_label = tk.Label(frame, text="Ratings:", font=('Helvetica', 12))
+    ratings_label = tk.Label(frame, text="Ratings:", fg="#000099", font=('Helvetica', 12))
     ratings_label.grid(row=0, column=0, padx=5, pady=0, sticky='e')
 
     ratings_var = tk.StringVar()
@@ -114,26 +110,26 @@ def option_section(window):
     ratings_dropdown.grid(row=0, column=1, padx=5, pady=0, sticky='w')
     ratings_dropdown.set("Any")
 
-    genre_label = tk.Label(frame, text="Genre:", font=('Helvetica', 12))
+    genre_label = tk.Label(frame, fg="#000099", text="Genre:", font=('Helvetica', 12))
     genre_label.grid(row=1, column=0, padx=5, pady=(25, 0), sticky='e')
 
     genre_var = tk.StringVar()
-    genre_opt = ["Any", "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mystery", "Romance", "Sci-Fi", "Thriller"]
+    genre_opt = ["Any", "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mystery", "Romance", "Sci-Fi",
+                 "Thriller"]
     genre_dropdown = ttk.Combobox(frame, textvariable=genre_var, values=genre_opt, font=('Helvetica', 12))
     genre_dropdown.grid(row=1, column=1, padx=5, pady=(25, 0), sticky='w')
     genre_dropdown.set("Any")
 
-    count_label = tk.Label(frame, text="Count of Movies:", font=('Helvetica', 12))
+    count_label = tk.Label(frame, text="Count of Movies:", font=('Helvetica', 12), fg="#000099")
     count_label.grid(row=1, column=2, padx=5, pady=(25, 0), sticky='e')
 
     count_var = tk.StringVar()
     count_var.set("1")
 
     validate_cmd = (window.register(validate_numeric_input), '%P')
-    count_entry = ttk.Entry(frame, textvariable=count_var, validate='key', validatecommand=validate_cmd, font=('Helvetica', 12))
+    count_entry = ttk.Entry(frame, textvariable=count_var, validate='key', validatecommand=validate_cmd,
+                            font=('Helvetica', 12))
     count_entry.grid(row=1, column=3, padx=5, pady=(25, 0), sticky='w')
-    
-
 
     button_frame = ttk.Frame(window)
     button_frame.pack(padx=20, pady=10, fill=tk.X)
@@ -143,12 +139,9 @@ def option_section(window):
 
     clear_button = tk.Button(button_frame, text="Clear", command=clear_movies)
     clear_button.grid(row=0, column=1, padx=10, pady=5)
-    
+
     movie_frame = ttk.Frame(window)
     movie_frame.pack(side=tk.LEFT, padx=10, pady=5, fill=tk.BOTH, expand=True)
-
-
-
 
 class MovieComponent(ttk.Frame):
     def __init__(self, parent, title, year, rating, img_url, youtube_link, movie_link, genre):
@@ -162,7 +155,7 @@ class MovieComponent(ttk.Frame):
         self.movie_link = movie_link
         self.genre = genre
 
-        border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=100, height=100)
+        border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=1000, height=150, style="Dark.TFrame")
         border_frame.pack_propagate(False)
         border_frame.pack(padx=10, pady=12, fill=tk.X)
 
@@ -170,26 +163,28 @@ class MovieComponent(ttk.Frame):
         self.image_label.grid(row=0, column=0, rowspan=4, padx=10, pady=10)
         self.load_image(img_url)
 
-        opt_frame = ttk.Frame(border_frame)
+        opt_frame = ttk.Frame(border_frame, style="Dark.TFrame")
         opt_frame.grid(row=0, column=1, sticky='n')
 
-        title_label = ttk.Label(opt_frame, text=f"Title: {title}", font=('Helvetica', 12))
+        title_label = ttk.Label(opt_frame, text=f"Title: {title}", font=('Comic Sans MS', 12),background="#DDDDDD" , style="Light.TLabel")
         title_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
-        year_label = ttk.Label(opt_frame, text=f"Year: {year}", font=('Helvetica', 12))
+        year_label = ttk.Label(opt_frame, text=f"Year: {year}", background="#F0F0F0", font=('Comic Sans MS', 12), style="Light.TLabel")
         year_label.grid(row=1, column=0, padx=10, pady=5, sticky='w')
 
-        rating_label = ttk.Label(opt_frame, text=f"Rating: {rating}", font=('Helvetica', 12))
+        rating_label = ttk.Label(opt_frame, text=f"Rating: {rating}", background="#F0F0F0",font=('Comic Sans MS', 12), style="Light.TLabel")
         rating_label.grid(row=2, column=0, padx=10, pady=5, sticky='w')
 
-        genre_label = ttk.Label(opt_frame, text=f"Genre: {genre}", font=('Helvetica', 12))
-        genre_label.grid(row=2, column=1, padx=10, pady=5, sticky='w')
+        genre_label = ttk.Label(opt_frame, text=f"Genre: {genre}", background="#F0F0F0" , font=('Comic Sans MS', 12), style="Light.TLabel")
+        genre_label.grid(row=2, column=1, padx=200, pady=5, sticky='w')
 
-        youtube_button = ttk.Button(opt_frame, text="Trailer", command=self.open_youtube)
-        youtube_button.grid(row=3, column=0, padx=10, pady=5, sticky='w')
+        youtube_button = ttk.Button(opt_frame, text="Trailer", command=self.open_youtube, style="Dark.TButton")
+        youtube_button.grid(row=4, column=0, padx=10, pady=25, sticky='w')
 
-        movie_button = ttk.Button(opt_frame, text="Movie", command=self.open_movie)
-        movie_button.grid(row=4, column=0, padx=10, pady=5, sticky='w')
+        movie_button = ttk.Button(opt_frame, text="Movie", command=self.open_movie, style="Dark.TButton")
+        movie_button.grid(row=4, column=1, padx=10, pady=25, sticky='w')
+
+
 
     def load_image(self, img_url):
         try:
@@ -210,6 +205,7 @@ class MovieComponent(ttk.Frame):
         import webbrowser
         webbrowser.open(self.movie_link)
 
+
 def handle_search():
     try:
         url = search_var.get()
@@ -226,7 +222,6 @@ def handle_search():
         movies = {}
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
-
 
         movie_processed = 0
 
@@ -314,44 +309,46 @@ def handle_search():
     except requests.RequestException as e:
         show_error(f"Error fetching URL: {e}")
 
+
 def display_movies(movies, count):
-    # Clear any existing widgets in the Movie_frame
     clear_movies()
 
-    # Create a Canvas widget inside the Movie_frame
     canvas = tk.Canvas(movie_frame)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    # Create a Scrollbar widget and link it to the Canvas
     scrollbar = ttk.Scrollbar(movie_frame, orient=tk.VERTICAL, command=canvas.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    # Create a Frame inside the Canvas to hold the MovieComponent widgets
     inner_frame = ttk.Frame(canvas)
     canvas.create_window((0, 0), window=inner_frame, anchor="nw")
 
-    # Add MovieComponent widgets to the inner_frame
     for i, (movie_name, movie_data) in enumerate(list(movies.items())[:count]):
-        movie_component = MovieComponent(inner_frame, title=movie_name, year=movie_data['release_date'], rating=movie_data['rating'],
-                                         img_url=movie_data['img_url'], youtube_link=f"https://www.youtube.com/results?search_query={'+'.join(movie_name.split())}",
+        movie_component = MovieComponent(inner_frame, title=movie_name, year=movie_data['release_date'],
+                                         rating=movie_data['rating'],
+                                         img_url=movie_data['img_url'],
+                                         youtube_link=f"https://www.youtube.com/results?search_query={'+'.join(movie_name.split())}",
                                          movie_link=movie_data['link'], genre=", ".join(movie_data['genres']))
-        movie_component.pack(fill=tk.X, padx=10, pady=5 )
+        movie_component.pack(fill=tk.X, padx=10, pady=5)
 
-    # Update the scroll region of the Canvas to include the inner_frame
     inner_frame.update_idletasks()
     canvas.configure(scrollregion=canvas.bbox("all"))
+
 
 def create_movie_components():
     clear_movies()
     display_movies(movies, int(count_var.get()))
 
+
 def clear_movies():
     for widget in movie_frame.winfo_children():
         widget.destroy()
 
+
 def show_error(message):
     messagebox.showerror("Error", message)
+
 
 def on_closing():
     global review_window
@@ -359,6 +356,7 @@ def on_closing():
         open_review_prompt()
     else:
         main_window.destroy()
+
 
 def open_review_prompt():
     global review_entry, happiness_var, review_window
@@ -388,14 +386,12 @@ def open_review_prompt():
 
     cancel_button = tk.Button(button_frame, text="Cancel", command=review_window.destroy)
     cancel_button.grid(row=0, column=1, padx=5)
-    
-    
-
 
     do_not_show_checkbox = tk.Button(review_window, text="Don't show this box again", command=disable_review_prompt)
     do_not_show_checkbox.pack()
 
     review_window.protocol("WM_DELETE_WINDOW", close_all_window)
+
 
 def submit_review():
     global review_window
@@ -405,13 +401,14 @@ def submit_review():
     review_window.destroy()
     main_window.destroy()
 
+
 def disable_review_prompt():
     global review_window
     with open(DO_NOT_SHOW_FILE, 'w') as file:
         file.write("delete this file to disable the review box?")
     review_window.destroy()
     main_window.destroy()
-    
+
 
 def close_all_window():
     if review_window:
@@ -419,7 +416,6 @@ def close_all_window():
     if main_window:
         main_window.destroy()
 
-    
 
 if __name__ == "__main__":
     gui()
