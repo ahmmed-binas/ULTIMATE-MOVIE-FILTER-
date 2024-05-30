@@ -1,0 +1,19 @@
+Paste the Link: Copy the link of the page containing multiple movies from the Swatchseries site.
+
+Enter the Link: Paste the copied link into the designated field in the application.
+
+Select Options (Optional): Choose specific preferences like genre or ratings from the dropdown menu provided, if desired. Alternatively, you can skip this step.
+
+Specify Number of Movies: Enter the desired number of movies you want to extract from the provided link into the designated field.
+
+Submit/Search: Click the "Submit" or "Search" button to initiate the search process.
+
+Wait for Results: The app will extract information from the provided link and process it. This may take a few moments depending on the number of movies and your internet speed.
+
+Review the List: Once processing is complete, the app will display a list of extracted movies along with their details such as ratings and titles.
+
+Interact with Results: Scroll through the list to view all the extracted movies. Locate specific movies easily within the list.
+
+Additional Notes: If you ever need the review box again after selecting the "Do not show again" option, reinstall the application. Alternatively, if you're running it by code, delete the text file named do_not_show_review.txt.
+
+Enjoy Watching!: With the list of extracted movies at your disposal, enjoy watching your favorite content hassle-free!
