@@ -10,6 +10,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import re
+from tkinter import Scrollbar
+
 
 movies = {}
 review_entry = None
@@ -41,6 +43,9 @@ def send_email(review, happiness_meter):
         smtp.login(email_sender, password)
         smtp.send_message(msg)
     print("Email sent successfully.")
+    
+    
+    
 def gui():
     global main_window
 
@@ -60,23 +65,11 @@ def gui():
     search_bar(main_window)
     option_section(main_window)
 
-    canvas = tk.Canvas(main_window)
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-    scrollbar = ttk.Scrollbar(main_window, orient=tk.VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    scrollable_frame = ttk.Frame(canvas)
-    scrollable_frame_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-
-    canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
     main_window.mainloop()
 
 def search_bar(window):
-    global search_var
+    global search_var,frame
 
     style = ttk.Style()
     style.configure("Custom.TButton", padding=(2), font=('Helvetica', 14))
@@ -101,7 +94,7 @@ def validate_numeric_input(P):
     return False
 
 def option_section(window):
-    global ratings_var, genre_var, count_var
+    global ratings_var, genre_var, count_var, button_frame ,movie_frame
 
     frame_heading = ttk.Frame(window)
     frame_heading.pack(padx=5, pady=(5, 0), fill=tk.X)
@@ -150,6 +143,12 @@ def option_section(window):
 
     clear_button = tk.Button(button_frame, text="Clear", command=clear_movies)
     clear_button.grid(row=0, column=1, padx=10, pady=5)
+    
+    movie_frame = ttk.Frame(window)
+    movie_frame.pack(side=tk.LEFT, padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+
+
 
 class MovieComponent(ttk.Frame):
     def __init__(self, parent, title, year, rating, img_url, youtube_link, movie_link, genre):
@@ -163,7 +162,7 @@ class MovieComponent(ttk.Frame):
         self.movie_link = movie_link
         self.genre = genre
 
-        border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=1000, height=200)
+        border_frame = ttk.Frame(self, borderwidth=2, relief="solid", width=100, height=100)
         border_frame.pack_propagate(False)
         border_frame.pack(padx=10, pady=12, fill=tk.X)
 
@@ -316,18 +315,39 @@ def handle_search():
         show_error(f"Error fetching URL: {e}")
 
 def display_movies(movies, count):
+    # Clear any existing widgets in the Movie_frame
+    clear_movies()
+
+    # Create a Canvas widget inside the Movie_frame
+    canvas = tk.Canvas(movie_frame)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Create a Scrollbar widget and link it to the Canvas
+    scrollbar = ttk.Scrollbar(movie_frame, orient=tk.VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Create a Frame inside the Canvas to hold the MovieComponent widgets
+    inner_frame = ttk.Frame(canvas)
+    canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+    # Add MovieComponent widgets to the inner_frame
     for i, (movie_name, movie_data) in enumerate(list(movies.items())[:count]):
-        movie_component = MovieComponent(frame, title=movie_name, year=movie_data['release_date'], rating=movie_data['rating'],
+        movie_component = MovieComponent(inner_frame, title=movie_name, year=movie_data['release_date'], rating=movie_data['rating'],
                                          img_url=movie_data['img_url'], youtube_link=f"https://www.youtube.com/results?search_query={'+'.join(movie_name.split())}",
                                          movie_link=movie_data['link'], genre=", ".join(movie_data['genres']))
-        movie_component.pack(fill=tk.X, padx=10, pady=5)
+        movie_component.pack(fill=tk.X, padx=10, pady=5 )
+
+    # Update the scroll region of the Canvas to include the inner_frame
+    inner_frame.update_idletasks()
+    canvas.configure(scrollregion=canvas.bbox("all"))
 
 def create_movie_components():
     clear_movies()
     display_movies(movies, int(count_var.get()))
 
 def clear_movies():
-    for widget in frame.winfo_children():
+    for widget in movie_frame.winfo_children():
         widget.destroy()
 
 def show_error(message):
