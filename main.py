@@ -63,7 +63,9 @@ def gui():
 
     search_bar(main_window)
     option_section(main_window)
-
+    
+    
+    main_window.protocol("WM_DELETE_WINDOW", on_closing)
     main_window.mainloop()
 
 
@@ -205,13 +207,12 @@ class MovieComponent(ttk.Frame):
         import webbrowser
         webbrowser.open(self.movie_link)
 
-
 def handle_search():
     try:
         url = search_var.get()
 
         if not url.strip():
-            url = "https://swatchseries.is/genre/horror"
+            url = "https://swatchseries.is/genre/family"
 
         response = requests.get(url)
         response.raise_for_status()
@@ -223,16 +224,7 @@ def handle_search():
 
         links = [urljoin(url, a['href']) for a in soup.find_all('a', href=True)]
 
-        movie_processed = 0
-
-        rating_filter = ratings_var.get()
-        selected_genre = genre_var.get()
-        count = int(count_var.get())
-
         for link in links:
-            if movie_processed >= count:
-                break
-
             if '/watch-' in link and link not in links_set:
                 links_set.add(link)
                 try:
@@ -266,13 +258,15 @@ def handle_search():
                                 rating = None
                                 print(f"Rating conversion error: {rating_text}")
 
-                        if rating_filter == "Any" or \
-                                (rating_filter == "1 - 2" and rating <= 2) or \
-                                (rating_filter == "3 - 4" and rating <= 4) or \
-                                (rating_filter == "5 - 6" and rating <= 6) or \
-                                (rating_filter == "7 - 8" and rating <= 8) or \
-                                (rating_filter == "9 - 10" and rating >= 9):
+                        rating_filter = ratings_var.get()
+                        selected_genre = genre_var.get()
 
+                        if rating_filter == "Any" or \
+                                (rating_filter == "1 - 2" and rating and rating <= 2) or \
+                                (rating_filter == "3 - 4" and rating and 3 <= rating <= 4) or \
+                                (rating_filter == "5 - 6" and rating and 5 <= rating <= 6) or \
+                                (rating_filter == "7 - 8" and rating and 7 <= rating <= 8) or \
+                                (rating_filter == "9 - 10" and rating and rating >= 9):
                             row_lines = m_id_content.find_all('div', class_='row-line')
                             release_date = None
                             genres = []
@@ -296,9 +290,9 @@ def handle_search():
                                 }
 
                                 print("Movie added:", movies[movie_name])
-                                movie_processed += 1
                 except Exception as e:
-                    show_error(f"ERROR: {e}")
+                    print(f"Error processing movie at {link}: {e}")
+                    continue
 
         if not movies:
             show_error("No movies found matching the criteria!")
@@ -309,6 +303,11 @@ def handle_search():
     except requests.RequestException as e:
         show_error(f"Error fetching URL: {e}")
 
+
+
+
+        
+            
 
 def display_movies(movies, count):
     clear_movies()
@@ -324,7 +323,9 @@ def display_movies(movies, count):
     inner_frame = ttk.Frame(canvas)
     canvas.create_window((0, 0), window=inner_frame, anchor="nw")
 
-    for i, (movie_name, movie_data) in enumerate(list(movies.items())[:count]):
+    for i, (movie_name, movie_data) in enumerate(movies.items()):
+        if i >= count:
+            break
         movie_component = MovieComponent(inner_frame, title=movie_name, year=movie_data['release_date'],
                                          rating=movie_data['rating'],
                                          img_url=movie_data['img_url'],
@@ -334,11 +335,12 @@ def display_movies(movies, count):
 
     inner_frame.update_idletasks()
     canvas.configure(scrollregion=canvas.bbox("all"))
-
-
+    
+    
 def create_movie_components():
-    clear_movies()
-    display_movies(movies, int(count_var.get()))
+    count = int(count_var.get()) 
+    display_movies(movies, count)
+
 
 
 def clear_movies():
@@ -387,11 +389,11 @@ def open_review_prompt():
     cancel_button = tk.Button(button_frame, text="Cancel", command=review_window.destroy)
     cancel_button.grid(row=0, column=1, padx=5)
 
-    do_not_show_checkbox = tk.Button(review_window, text="Don't show this box again", command=disable_review_prompt)
-    do_not_show_checkbox.pack()
+    if not os.path.exists(DO_NOT_SHOW_FILE):
+        do_not_show_checkbox = tk.Button(review_window, text="Don't show this box again", command=disable_review_prompt)
+        do_not_show_checkbox.pack()
 
     review_window.protocol("WM_DELETE_WINDOW", close_all_window)
-
 
 def submit_review():
     global review_window
