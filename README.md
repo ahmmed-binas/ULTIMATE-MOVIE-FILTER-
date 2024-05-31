@@ -1,24 +1,23 @@
-# ULTIMATE-MOVIE-FILTER-
-done with the interface.. ready to use 
+Interface Complete and Ready to Use
 
-This Application can help you find movies easily and more efficiently on one of the most used sites(swatchseries) 
+This application helps you find movies easily and efficiently on one of the most popular sites, Swatchseries.
+![Capturee3](https://github.com/ahmmed-binas/ULTIMATE-MOVIE-FILTER-/assets/110778968/30bc9124-c04a-4a04-911c-e007d3684aa0)
 
+How to Use:
 
+Paste the link of the page containing multiple movies from the Swatchseries site.
+If you're looking for a specific genre or ratings, choose the options from the dropdown box. However, it's often more effective to specify how many movies you want to extract from the link and press submit.
+Submit (Search)
+![RR](https://github.com/ahmmed-binas/ULTIMATE-MOVIE-FILTER-/assets/110778968/127ab294-69d9-45aa-90ba-0112bde63e9a)
 
-how to use:
--just paste the link of the page where there is more movies (expected from the swatchseries site)
+How It Works:
+![Capturee34](https://github.com/ahmmed-binas/ULTIMATE-MOVIE-FILTER-/assets/110778968/9b67051b-b4de-432a-a004-54bce6d47ae9)
 
--if your looking for a specific genre ,ratings choose the option from the dropbox(but its just better to type how many movies do you want to extract from the link and press sumbit)
+When you enter a link and search, the application extracts all the links from the provided page.
+It then processes the specified number of links (movies) you want to search.
+From those links, it extracts the necessary information such as ratings, title, etc.
+Finally, it displays the information in a list.
+Note:
 
--sumbmit(search)
-
-
-how it works in general:
--first when you put a link and search it extracts all the link from the link you gave
--then , it goes thru how many links(movies) you want to search
--after that, then from the link it extracts the needed information like the ratings,title etc...
--then.. it displays in a list.
--if you want need the review box again (after pressing the do not show again option) install the application again or if your running by code delete the txt file called do_not_show_review.txt.:)..
- ENJOY(SWATCH VIEWERS)
-
-
+If you need the review box again after selecting the "Do not show again" option, reinstall the application. If you are running it by code, delete the text file named do_not_show_review.txt.
+Enjoy, Swatchseries Viewers!
